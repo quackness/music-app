@@ -58,7 +58,24 @@ app.post('/api/albums/:id/albumart', upload.single('albumart'), (req, res) => {
 });
 
 
-//additions to the existing code
+//Create Express.js endpoints to handle the creation, updating, and deletion of artists. 
+//Use the frontend files as a guide for endpoint requirements.
+
+//delete an artist
+app.delete('/api/artists/:id', (req, res) => {
+  const deleteArtistSql = `DELETE FROM artists WHERE ArtistId = ?;`;
+  const deleteArtist = db.prepare(deleteArtistSql);
+  console.log(deleteArtist);
+  //run
+  const deleteResult = deleteArtist.run([req.params.id]);
+  // res.json(deleteResult);
+  // console.log(res.json(deleteResult));
+  if (deleteResult > 0) {
+    res.json(deleteResult);
+  } else {
+    res.status(404).json(deleteResult);
+  }
+});
 
 
 app.listen(3000, () => { "Listening on port 3000" });
