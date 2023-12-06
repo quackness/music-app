@@ -77,5 +77,30 @@ app.delete('/api/artists/:id', (req, res) => {
   }
 });
 
+//add artist
+
+app.post('/api/artists', express.json(), (req, res) => {
+  console.log(req.body);//{ Name: 'test' }
+  const columns = [];
+  const parameters = [];
+  const values = [];
+  for (key in req.body) {
+    parameters.push('?');
+    columns.push(key);
+    values.push(req.body[key]);
+  };
+  console.log(columns, values, parameters);
+  const sql = `INSERT INTO Artists (${columns.join(', ')}) VALUES (${parameters.join(', ')});`
+  console.log(sql);
+  const statement = db.prepare(sql);
+  const result = statement.run(values);
+  res.status(201).json(result);
+
+
+
+
+
+});
+
 
 app.listen(3000, () => { "Listening on port 3000" });
