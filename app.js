@@ -17,6 +17,15 @@ app.get('/api/artists', (req, res) => {
   res.json(data);
 });
 
+app.get('/api/artists/:id', (req, res) => {
+  const artists = db.prepare('SELECT * FROM artists where ArtistId = ?');
+  const data = artists.get(req.params.id);
+  // const data = artists.all();
+  // console.log("data /api/artists", data)
+  res.json(data);
+});
+
+
 
 app.get('/api/artists/:id/albums', (req, res) => {
   const database = db.prepare('select * from albums where ArtistId = ?');
@@ -68,9 +77,10 @@ app.delete('/api/artists/:id', (req, res) => {
   console.log(deleteArtist);
   //run
   const deleteResult = deleteArtist.run([req.params.id]);
+  // console.log("deleteResult", deleteResult);
   // res.json(deleteResult);
   // console.log(res.json(deleteResult));
-  if (deleteResult > 0) {
+  if (deleteResult.changes > 0) {
     res.json(deleteResult);
   } else {
     res.status(404).json(deleteResult);
@@ -78,7 +88,6 @@ app.delete('/api/artists/:id', (req, res) => {
 });
 
 //add artist
-
 app.post('/api/artists', express.json(), (req, res) => {
   console.log(req.body);//{ Name: 'test' }
   const columns = [];
@@ -95,11 +104,26 @@ app.post('/api/artists', express.json(), (req, res) => {
   const statement = db.prepare(sql);
   const result = statement.run(values);
   res.status(201).json(result);
+});
 
 
-
-
-
+//edit artist
+app.patch('/api/artists/:id', (req, res) => {
+  console.log(req.body);
+  const columns = [];
+  const values = [];
+  console.log(req.body);//{ Name: '
+  for (key in req.body) {
+    columns.push(`${key}=?`);//[ 'Name=?' ] 
+    values.push(req.body[key]);
+  }
+  values.push(req.params.id)
+  console.log(values);//[ 'new', '283' ]
+  const sqlUpdateArtist = `UPDATE artists SET ${columns.join(',')} where ArtistId=?`;
+  console.log(sqlUpdateArtist)
+  const statement = db.prepare(sqlUpdateArtist);
+  const result = statement.run(values);
+  res.json(result);
 });
 
 
