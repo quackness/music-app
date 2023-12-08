@@ -154,14 +154,102 @@ app.post('/api/albums', (req, res) => {
   }
   console.log(columnName, parametersSanitized, values);
   const addAlbumSql = `INSERT INTO Albums (${columnName.join(',')}) VALUES (${parametersSanitized.join(',')});`
-  console.log("test");
   const addAlbum = db.prepare(addAlbumSql);
-  console.log("test");
   const result = addAlbum.run(values);
-  console.log("test");
-  console.log("test");
+  res.status(201).json(result);
+});
+
+app.patch('/api/albums/:id', (req, res) => {
+  console.log(req.body);
+  const columnName = [];
+  const values = [];
+  for (key in req.body) {
+    columnName.push(`${key} =?`);
+    values.push(req.body[key])
+  }
+  values.push(req.params.id);
+  console.log(columnName, values, req.params.id)
+  const editAlbumSQL = `UPDATE albums SET ${columnName.join(', ')} WHERE AlbumId =?`;
+  console.log(editAlbumSQL);
+  const editAlbum = db.prepare(editAlbumSQL);
+  const result = editAlbum.run(values);
   res.json(result);
+});
+
+app.get('/api/albums/:id', (req, res) => {
+  const artists = db.prepare('SELECT * FROM albums where AlbumId = ?');
+  const data = artists.get(req.params.id);
+  res.json(data);
+});
+
+
+//tracks 
+// Create Express.js endpoints to handle the creation, updating, and deletion of tracks. 
+// Use the frontend files as a guide for endpoint requirements.
+// fetch(`/api/tracks/${trackId}`
+
+app.get('/api/tracks/:id', (req, res) => {
+  const query = db.prepare('select * from tracks where TrackId=?');
+  const data = query.all(req.params.id);
+  //server sends a response to the client as json format
+  res.json(data);
 })
+
+
+app.delete('/api/tracks/:id', (req, res) => {
+  const deleteTrackSql = db.prepare('DELETE FROM tracks WHERE TrackId = ?');
+  const result = deleteTrackSql.run(req.params.id);
+  if (result.changes > 0) {
+    res.json(result);
+  } else {
+    res.status(404).json(result);
+  }
+})
+
+app.get('/api/mediatypes', (req, res) => {
+  const mediaTypes = db.prepare('SELECT * FROM media_types;');
+  const result = mediaTypes.all()
+  res.json(result);
+});
+
+app.post('/api/tracks', express.json(), (req, res) => {
+  console.log(req.body)
+  const columnName = [];
+  const values = [];
+  const parameters = [];
+  for (key in req.body) {
+    parameters.push('?');
+    columnName.push(key)
+    values.push(req.body[key])
+  }
+  console.log(columnName, values);
+  //question: if I use values it compians about column name but itsthe value
+  const addTrackSql = `INSERT INTO tracks (${columnName.join(', ')}) VALUES (${parameters.join(', ')});`
+  console.log(addTrackSql);
+  const addTrack = db.prepare(addTrackSql);
+  const result = addTrack.run(values);
+  res.status(201).json(result);
+})
+
+
+app.patch('/api/tracks/:id', (req, res) => {
+  console.log(req.body);
+  const columnName = [];
+  const values = [];
+  for (key in req.body) {
+    columnName.push(`${key} = ?`)
+    values.push(req.body[key]);
+  }
+  values.push(req.params.id);
+  console.log(columnName, values)
+  const updateTrackSql = `UPDATE tracks SET ${columnName.join(', ')} where TrackId = ?`;
+  const updateTrack = db.prepare(updateTrackSql);
+  const result = updateTrack.run(values);
+  res.json(result);
+
+});
+
+
 
 
 app.listen(3000, () => { "Listening on port 3000" });
