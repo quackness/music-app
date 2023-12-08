@@ -4,12 +4,31 @@ const multer = require('multer');
 const path = require('path');
 const { add } = require('nodemon/lib/rules');
 const db = new Database('./Database/chinook.sqlite');
+const Joi = require('joi');
 
 const app = express();
 //serve static files 
 app.use(express.static('_FrontendStarterFiles'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+//def schemas for validatioms, in other schemas the lack of id was an issue, for example in tracks, the error was saying that "AlbumId" is not allowed, it is not happening for this one, not usre why
+const artistsSchema = Joi.object({
+  Name: Joi.string().max(50).required(),
+});
+
+const albumsSchema = Joi.object({
+  Title: Joi.string().max(50).required(),
+  ReleaseYear: Joi.number().integer().min(1900).max(new Date().getFullYear()).required(),
+  ArtistId: Joi.number().integer()
+});
+
+const tracksSchema = Joi.object({
+  Name: Joi.string().max(50).required(),
+  MediaTypeId: Joi.number().integer().max(5).required(),
+  AlbumId: Joi.number().integer(),
+  Milliseconds: Joi.number().integer().required()//q: it is required but in patch it updates it with a blank value and sets to 0:00
+});
 
 app.get('/api/artists', (req, res) => {
   const artists = db.prepare('SELECT * FROM artists');
@@ -21,11 +40,8 @@ app.get('/api/artists', (req, res) => {
 app.get('/api/artists/:id', (req, res) => {
   const artists = db.prepare('SELECT * FROM artists where ArtistId = ?');
   const data = artists.get(req.params.id);
-  // const data = artists.all();
-  // console.log("data /api/artists", data)
   res.json(data);
 });
-
 
 
 app.get('/api/artists/:id/albums', (req, res) => {
@@ -39,14 +55,9 @@ app.get('/api/artists/:id/albums', (req, res) => {
   }
 })
 
-
-//Create a new endpoint that allows the frontend to 
-//request tracks based on a selected album.
-//server listening on 3000 for any get request on this end point 
 app.get('/api/albums/:id/tracks', (req, res) => {
   const query = db.prepare('select * from tracks where AlbumId=?');
   const data = query.all(req.params.id);
-  //server sends a response to the client as json format
   res.json(data);
 });
 
@@ -68,9 +79,6 @@ app.post('/api/albums/:id/albumart', upload.single('albumart'), (req, res) => {
 });
 
 
-//Create Express.js endpoints to handle the creation, updating, and deletion of artists. 
-//Use the frontend files as a guide for endpoint requirements.
-
 //delete an artist
 app.delete('/api/artists/:id', (req, res) => {
   const deleteArtistSql = `DELETE FROM artists WHERE ArtistId = ?;`;
@@ -90,6 +98,10 @@ app.delete('/api/artists/:id', (req, res) => {
 
 //add artist
 app.post('/api/artists', express.json(), (req, res) => {
+  const { error } = artistsSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    return res.status(422).send(error.details);
+  }
   console.log(req.body);//{ Name: 'test' }
   const columns = [];
   const parameters = [];
@@ -102,8 +114,11 @@ app.post('/api/artists', express.json(), (req, res) => {
   console.log(columns, values, parameters);
   const sql = `INSERT INTO Artists (${columns.join(', ')}) VALUES (${parameters.join(', ')});`
   console.log(sql);
+  console.log("test");
   const statement = db.prepare(sql);
+  console.log("test");
   const result = statement.run(values);
+  console.log("test");
   res.status(201).json(result);
 });
 
@@ -111,6 +126,11 @@ app.post('/api/artists', express.json(), (req, res) => {
 //edit artist
 app.patch('/api/artists/:id', (req, res) => {
   console.log(req.body);
+  const { error } = artistsSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    return res.status(422).send(error.details);
+  }
+
   const columns = [];
   const values = [];
   console.log(req.body);//{ Name: '
@@ -124,12 +144,8 @@ app.patch('/api/artists/:id', (req, res) => {
   console.log(sqlUpdateArtist)
   const statement = db.prepare(sqlUpdateArtist);
   const result = statement.run(values);
-  res.status(201).json(result);
+  res.status(200).json(result);
 });
-
-
-// Create Express.js endpoints to handle the creation, updating, and deletion of albums. 
-// Use the frontend files as a guide for endpoint requirements.
 
 app.delete('/api/albums/:id', (req, res) => {
   const deletAlbumSql = 'DELETE from albums Where AlbumId = ?';
@@ -143,7 +159,13 @@ app.delete('/api/albums/:id', (req, res) => {
   }
 });
 
+
 app.post('/api/albums', (req, res) => {
+  const { error } = albumsSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    return res.status(422).send(error.details);
+  }
+  console.log(req.body);
   const columnName = [];
   const values = [];
   const parametersSanitized = [];
@@ -160,6 +182,10 @@ app.post('/api/albums', (req, res) => {
 });
 
 app.patch('/api/albums/:id', (req, res) => {
+  const { error } = albumsSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    return res.status(422).send(error.details);
+  }
   console.log(req.body);
   const columnName = [];
   const values = [];
@@ -184,17 +210,12 @@ app.get('/api/albums/:id', (req, res) => {
 
 
 //tracks 
-// Create Express.js endpoints to handle the creation, updating, and deletion of tracks. 
-// Use the frontend files as a guide for endpoint requirements.
-// fetch(`/api/tracks/${trackId}`
 
 app.get('/api/tracks/:id', (req, res) => {
   const query = db.prepare('select * from tracks where TrackId=?');
   const data = query.all(req.params.id);
-  //server sends a response to the client as json format
   res.json(data);
 })
-
 
 app.delete('/api/tracks/:id', (req, res) => {
   const deleteTrackSql = db.prepare('DELETE FROM tracks WHERE TrackId = ?');
@@ -213,6 +234,11 @@ app.get('/api/mediatypes', (req, res) => {
 });
 
 app.post('/api/tracks', express.json(), (req, res) => {
+  console.log(req.body);
+  const { error } = tracksSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    return res.status(422).send(error.details);
+  }
   console.log(req.body)
   const columnName = [];
   const values = [];
@@ -223,17 +249,25 @@ app.post('/api/tracks', express.json(), (req, res) => {
     values.push(req.body[key])
   }
   console.log(columnName, values);
-  //question: if I use values it compians about column name but itsthe value
+  //question: if I use values it complains about column name but itsthe value
   const addTrackSql = `INSERT INTO tracks (${columnName.join(', ')}) VALUES (${parameters.join(', ')});`
   console.log(addTrackSql);
   const addTrack = db.prepare(addTrackSql);
   const result = addTrack.run(values);
   res.status(201).json(result);
+  //q: with res.status(200).json(result); it does not show a pop up as well as with the code below
+  //result.changes > 0 ? res.json(result) : res.status(404).json(result);
+  // res.status(200).json(result);
+  // res.json(result);
 })
 
 
 app.patch('/api/tracks/:id', (req, res) => {
   console.log(req.body);
+  const { error } = tracksSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    return res.status(422).send(error.details);
+  }
   const columnName = [];
   const values = [];
   for (key in req.body) {
@@ -245,11 +279,18 @@ app.patch('/api/tracks/:id', (req, res) => {
   const updateTrackSql = `UPDATE tracks SET ${columnName.join(', ')} where TrackId = ?`;
   const updateTrack = db.prepare(updateTrackSql);
   const result = updateTrack.run(values);
-  res.json(result);
-
+  result.changes > 0 ? res.json(result) : res.status(404).json(result);
 });
 
 
+app.get('/api/themes', (req, res) => {
+  const getThemes = db.prepare('SELECT * from themes');
+  const themes = getThemes.all();
+  res.json(themes);
+});
 
 
 app.listen(3000, () => { "Listening on port 3000" });
+
+
+//the front end statuses vs end point 200, 201 etc
