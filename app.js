@@ -2,6 +2,7 @@ const express = require('express');
 const Database = require('better-sqlite3');
 const multer = require('multer');
 const path = require('path');
+const { add } = require('nodemon/lib/rules');
 const db = new Database('./Database/chinook.sqlite');
 
 const app = express();
@@ -123,8 +124,44 @@ app.patch('/api/artists/:id', (req, res) => {
   console.log(sqlUpdateArtist)
   const statement = db.prepare(sqlUpdateArtist);
   const result = statement.run(values);
-  res.json(result);
+  res.status(201).json(result);
 });
+
+
+// Create Express.js endpoints to handle the creation, updating, and deletion of albums. 
+// Use the frontend files as a guide for endpoint requirements.
+
+app.delete('/api/albums/:id', (req, res) => {
+  const deletAlbumSql = 'DELETE from albums Where AlbumId = ?';
+  const deleteAlbum = db.prepare(deletAlbumSql);
+  const result = deleteAlbum.run([req.params.id]);
+  console.log(result)
+  if (result.changes > 0) {
+    res.json(result);
+  } else {
+    res.status(404).json(result);
+  }
+});
+
+app.post('/api/albums', (req, res) => {
+  const columnName = [];
+  const values = [];
+  const parametersSanitized = [];
+  for (key in req.body) {
+    columnName.push(key);
+    parametersSanitized.push('?');
+    values.push(req.body[key]);
+  }
+  console.log(columnName, parametersSanitized, values);
+  const addAlbumSql = `INSERT INTO Albums (${columnName.join(',')}) VALUES (${parametersSanitized.join(',')});`
+  console.log("test");
+  const addAlbum = db.prepare(addAlbumSql);
+  console.log("test");
+  const result = addAlbum.run(values);
+  console.log("test");
+  console.log("test");
+  res.json(result);
+})
 
 
 app.listen(3000, () => { "Listening on port 3000" });
