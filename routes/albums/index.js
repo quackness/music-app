@@ -79,5 +79,25 @@ router.get('/:id', (req, res) => {
   res.json(data);
 });
 
+
+const storage = multer.diskStorage({
+  //destination: './_FrontendStarterFiles/albumart',//process.cwd() +? 
+  destination: process.cwd() + '/_FrontendStarterFiles/albumart',//process.cwd() +? 
+  filename: function (req, file, callback) {
+    callback(null, Date.now().toString() + path.extname(file.originalname))
+  }
+})
+const upload = multer({ storage: storage })
+router.post('/:id/albumart', upload.single('albumart'), (req, res) => {
+  console.log(req.file); // Output the entire req object for inspection
+  const query = db.prepare('UPDATE albums SET AlbumArt = ? WHERE AlbumId = ?');
+  const result = query.run([req.file.filename, req.params.id]);
+  res.json(result);
+});
+
+
+
+
+
 module.exports = router;
 

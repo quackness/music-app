@@ -26,26 +26,6 @@ app.use('/api/tracks', tracksRouter);
 app.use('/api/mediaTypes', mediaTypes);
 
 
-/*
-// //create endpoint to support file upload
-// //configuration of multer https://expressjs.com/en/resources/middleware/multer.html
-const storage = multer.diskStorage({
-  destination: './_FrontendStarterFiles/albumart',//process.cwd() +? 
-  //destination: process.cwd() + '/_FrontendStarterFiles/albumart',//process.cwd() +? 
-  filename: function (req, file, callback) {
-    callback(null, Date.now().toString() + path.extname(file.originalname))
-  }
-})
-const upload = multer({ storage: storage })
-app.post('api/albums/:id/albumart', upload.single('albumart'), (req, res) => {
-  console.log(req.file); // Output the entire req object for inspection
-  const query = db.prepare('UPDATE albums SET AlbumArt = ? WHERE AlbumId = ?');
-  const result = query.run([req.file.filename, req.params.id]);
-  res.json(result);
-});
-*/
-
-
 app.listen(3000, () => { "Listening on port 3000" });
 
 
