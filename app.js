@@ -6,7 +6,7 @@ const db = new Database('./Database/chinook.sqlite');
 const Joi = require('joi');
 
 //import routes 
-const themesRouter = require('./routes/themes');//will look for index.js by def
+const themesRouter = require('./routes/themes');
 const artistsRouter = require('./routes/artists');
 const albumsRouter = require('./routes/albums');
 const tracksRouter = require('./routes/tracks');
@@ -18,7 +18,7 @@ app.use(express.static('_FrontendStarterFiles'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-//inject route
+//inject routes
 app.use('/api/themes', themesRouter);
 app.use('/api/artists', artistsRouter);
 app.use('/api/albums', albumsRouter);

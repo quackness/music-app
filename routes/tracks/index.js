@@ -1,7 +1,5 @@
 const express = require('express');
 const Database = require('better-sqlite3');
-const multer = require('multer');
-const path = require('path');
 const db = Database(process.cwd() + '/database/chinook.sqlite');
 const Joi = require('joi');
 const router = express.Router();
