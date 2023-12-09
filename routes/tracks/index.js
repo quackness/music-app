@@ -52,9 +52,14 @@ router.post('/', express.json(), (req, res) => {
   console.log(addTrackSql);
   const addTrack = db.prepare(addTrackSql);
   const result = addTrack.run(values);
-  res.status(201).json(result);
-  //q: with res.status(200).json(result); it does not show a pop up as well as with the code below
-  //result.changes > 0 ? res.json(result) : res.status(404).json(result);
+  // res.status(200).json(result);
+  //q: with res.status(200).json(result); it does not show a pop up, it works fine if I do 201, 
+  //I think the issue is with add track html >>  
+  // changed case 200, 201:{
+  //   to
+  //   case 200: 
+  //   case 201:{
+  result.changes > 0 ? res.json(result) : res.status(404).json(result);
   // res.status(200).json(result);
   // res.json(result);
 })

@@ -109,7 +109,6 @@ router.patch('/:id', (req, res) => {
   values.push(req.params.id)
   //console.log(values);//[ 'new', '283' ]
   const sqlUpdateArtist = `UPDATE artists SET ${columns.join(',')} where ArtistId=?`;
-  //console.log(sqlUpdateArtist)
   const statement = db.prepare(sqlUpdateArtist);
   const result = statement.run(values);
   res.status(200).json(result);
