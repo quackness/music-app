@@ -1,9 +1,4 @@
 const express = require('express');
-const Database = require('better-sqlite3');
-const multer = require('multer');
-const path = require('path');
-const db = new Database('./Database/chinook.sqlite');
-const Joi = require('joi');
 
 //import routes 
 const themesRouter = require('./routes/themes');
