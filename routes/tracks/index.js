@@ -9,14 +9,14 @@ const tracksSchema = Joi.object({
   Name: Joi.string().max(50).required(),
   MediaTypeId: Joi.number().integer().max(5).required(),
   AlbumId: Joi.number().integer(),
-  Milliseconds: Joi.number().integer().required()//q: it is required but in patch it updates it with a blank value and sets to 0:00
+  Milliseconds: Joi.number().integer().required()
 });
 
 
 
 router.get('/:id', (req, res) => {
   const query = db.prepare('select * from tracks where TrackId=?');
-  const data = query.all(req.params.id);
+  const data = query.get(req.params.id);
   res.json(data);
 })
 
