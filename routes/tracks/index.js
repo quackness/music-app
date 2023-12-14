@@ -9,7 +9,7 @@ const tracksSchema = Joi.object({
   Name: Joi.string().max(50).required(),
   MediaTypeId: Joi.number().integer().max(5).required(),
   AlbumId: Joi.number().integer(),
-  Milliseconds: Joi.number().integer().required()
+  Milliseconds: Joi.number().integer().min(1).required()
 });
 
 
